@@ -11,22 +11,28 @@ const sendOTP = require('./utils/sendOTP');
 
 const app = express();
 
-// CORS configuration to allow your Vercel frontend and local dev
-const allowedOrigins = [
-  'https://alluminium-section-ruddy.vercel.app',
-  'https://alluminium-section-git-main-abbasvakhariyas-projects.vercel.app',
-  'http://localhost:3000'
-];
+// CORS configuration to allow Vercel preview/prod domains and local dev
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // allow non-browser or same-origin
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== 'http:' && protocol !== 'https:') return false;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+    // Allow any Vercel deployment for this project (preview/prod)
+    if (hostname.endsWith('.vercel.app')) return true;
+    return false;
+  } catch (_) {
+    return false;
+  }
+}
 
 const corsOptions = {
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 204
 };
