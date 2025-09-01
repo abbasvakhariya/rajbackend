@@ -10,10 +10,31 @@ const User = require('./models/User');
 const sendOTP = require('./utils/sendOTP');
 
 const app = express();
-app.use(cors({
-  origin: ['https://alluminium-section-git-main-abbasvakhariyas-projects.vercel.app/', 'http://localhost:3000'],
-  credentials: true
-}));
+
+// CORS configuration to allow your Vercel frontend and local dev
+const allowedOrigins = [
+  'https://alluminium-section-ruddy.vercel.app',
+  'https://alluminium-section-git-main-abbasvakhariyas-projects.vercel.app',
+  'http://localhost:3000'
+];
+
+const corsOptions = {
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
