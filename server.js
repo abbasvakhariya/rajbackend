@@ -10,7 +10,10 @@ const User = require('./models/User');
 const sendOTP = require('./utils/sendOTP');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://alluminium-section-git-main-abbasvakhariyas-projects.vercel.app', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
@@ -19,17 +22,27 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ✅ Request OTP (Login/Register)
 app.post('/api/request-otp', async (req, res) => {
+  console.log("🔍 Request OTP endpoint hit");
+  console.log("📥 Request body:", req.body);
+  
   const { email } = req.body;
-  if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+  if (!email) {
+    console.log("❌ Email is required");
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
 
   const normalizedEmail = email.toLowerCase();
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
+  console.log("📧 Processing email:", normalizedEmail);
+  console.log("🔢 Generated OTP:", otp);
+
   try {
     let user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
+      console.log("👤 Creating new user");
       user = new User({
         email: normalizedEmail,
         otp,
@@ -37,18 +50,24 @@ app.post('/api/request-otp', async (req, res) => {
         isVerified: false,
       });
     } else {
+      console.log("👤 Updating existing user");
       user.otp = otp;
       user.otpExpiry = otpExpiry;
     }
 
     await user.save();
-
-    console.log("OTP saved in DB:", user.otp);
+    console.log("✅ OTP saved in DB:", user.otp);
+    
+    console.log("📧 Attempting to send OTP email...");
+    console.log("📧 Email config - USER:", process.env.EMAIL_USER ? "SET" : "NOT SET");
+    console.log("📧 Email config - PASS:", process.env.EMAIL_PASS ? "SET" : "NOT SET");
+    
     await sendOTP(normalizedEmail, otp);
+    console.log("✅ OTP email sent successfully");
 
     res.json({ success: true, message: 'OTP sent to your email' });
   } catch (err) {
-    console.error("Error sending OTP:", err);
+    console.error("❌ Error sending OTP:", err);
     res.status(500).json({ success: false, message: 'Server error while sending OTP.' });
   }
 });

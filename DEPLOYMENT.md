@@ -2,11 +2,11 @@
 
 ## Environment Variables Required
 
-Create a `.env` file in the backend directory with the following variables:
+Set these environment variables in your Render deployment:
 
 ```env
 # MongoDB Connection String
-MONGO_URI=mongodb://localhost:27017/your_database_name
+MONGO_URI=mongodb+srv://your_username:your_password@your_cluster.mongodb.net/your_database
 
 # Email Configuration (for OTP sending)
 EMAIL_USER=your_email@gmail.com
@@ -18,6 +18,13 @@ PORT=5000
 # Node Environment
 NODE_ENV=production
 ```
+
+## Important Notes for Email Setup
+
+1. **Gmail App Password**: Use an App Password, not your regular Gmail password
+2. **Enable 2FA**: You must enable 2-factor authentication on your Gmail account
+3. **Generate App Password**: Go to Google Account Settings > Security > App Passwords
+4. **Use App Password**: Use the generated 16-character app password in EMAIL_PASS
 
 ## Deployment Steps
 
